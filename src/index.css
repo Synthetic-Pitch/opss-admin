@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: Inter, system-ui, sans-serif;
+  --breakpoint-tablet: 764px;
+  --breakpoint-desktop: 1024px;
+}
+
+@layer components {
+  .landing-pill-shadow {
+    box-shadow: 1dvw 1.2dvh 2.2dvh rgba(0, 0, 0, 0.5);
+  }
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+  }
+
+  body {
+    @apply min-h-screen antialiased;
+  }
+
+  #app {
+    @apply min-h-screen;
+  }
+
+  code {
+    @apply rounded bg-white/10 px-1.5 py-0.5 text-slate-100;
+  }
+}
