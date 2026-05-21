@@ -2,10 +2,9 @@ import { useLoginForm } from "../hooks/useLoginForm";
 
 const Login = () => {
   const { values, isSubmitting, submitError, handleChange, handleSubmit } =
-    useLoginForm();
-
+  useLoginForm();
   return (
-    <form onSubmit={handleSubmit} className="w-[58%] text-white">
+    <form onSubmit={handleSubmit} className="tablet:w-[58%] text-white">
       <div className="mb-[7%] border-b border-white/70 pb-[1.2%]">
         <label htmlFor="gmail" className="mb-[2%] block text-[2.2vh]">
           gmail
@@ -41,11 +40,11 @@ const Login = () => {
       {submitError ? (
         <p className="mt-[3%] text-[1.8vh] text-[#ffd4d4]">{submitError}</p>
       ) : null}
-
+    
       <button
         type="submit"
         disabled={isSubmitting}
-        className="mt-[6%] w-[38%] rounded-full border border-white/80 py-[2%] text-[2vh] font-medium tracking-wide text-white transition hover:bg-white/15 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-[6%] w-full tablet:w-[38%] rounded-full border border-white/80 py-4 tablet:py-[2%] px-12 text-[2vh] font-medium tracking-wide text-white transition hover:bg-white/15 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSubmitting ? "Signing in..." : "Sign in"}
       </button>

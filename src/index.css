@@ -2,6 +2,16 @@
 
 @theme {
   --font-sans: Inter, system-ui, sans-serif;
+  --font-poppins: "Poppins", sans-serif;
+  --font-oswald: "Oswald", sans-serif;
+  --font-noto-sans-kr: "Noto Sans KR", sans-serif;
+  --font-monoton: "Monoton", serif;
+  --font-monomaniac: "Monomaniac One", serif;
+  --font-mozilla-headline: "Mozilla Headline", serif;
+  --font-edu-cursive: "Edu NSW ACT Cursive", cursive;
+  --font-bagel-fat: "Bagel Fat One", serif;
+  --font-azeret-mono: "Azeret Mono", monospace;
+  --font-poetsen: "Poetsen One", serif;
   --breakpoint-tablet: 764px;
   --breakpoint-desktop: 1024px;
 }

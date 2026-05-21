@@ -1,18 +1,32 @@
-import img1 from "../assets/icons/marikinaCity_icon.png"
-import img2 from "../assets/icons/opssTmeu.png"
-import img3 from "../assets/icons/opssTmeuIcon.png"
-import img4 from "../assets/icons/opsshanabi.png"
-import Login from "../components/login"
+
+import img1 from "../assets/icons/marikinaCity_icon.png";
+import img2 from "../assets/icons/opssTmeu.png";
+import img3 from "../assets/icons/opssTmeuIcon.png";
+import img4 from "../assets/icons/opsshanabi.png";
+import Login from "../components/login";
+
 const Landing = () => {
+
   return (
+    
     <main>
-      <section className='hidden bg-white tablet:flex desktop:hidden'>
-        <h2>Welcome to the Landing Page</h2>
-        <p>This is the landing page of the website</p>
-        <button>Get Started</button>
+      <section className='tablet:hidden relative h-dvh w-dvw flex flex-col bg-[#e8e8e8]'>
+        <header className="bg-[#172a66] w-full h-25 rounded-b-full text-white flex items-center justify-center text-xl font-poetsen">
+            <h1>OPSS ADMINS</h1>
+        </header>
+        <div className="flex justify-evenly">
+            <img src={img1} alt="" className="h-25" />
+            <img src={img2} alt="" className="h-25" />
+        </div>
+        <main className="bg-[#3f7cab] py-12 px-4 my-8">
+            <Login/>
+        </main>
+        <div className="text-sm text-center font-poetsen text-[gray]">
+            NCR Marikina City Phillipines {new Date().getFullYear()}
+        </div>
       </section>
 
-      <section className='hidden desktop:flex relative h-dvh w-dvw'>
+      <section className='hidden tablet:flex relative h-dvh w-dvw'>
         <div className='absolute top-0 left-0 h-full w-full flex flex-col bg-[#E8E8E8]'>
             <div className='flex h-[70%] w-full'>
                 <article className='h-full w-[75%]'>
