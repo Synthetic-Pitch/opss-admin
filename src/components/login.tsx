@@ -1,8 +1,22 @@
 import { useLoginForm } from "../hooks/useLoginForm";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
+  const navigate = useNavigate();
+
   const { values, isSubmitting, submitError, handleChange, handleSubmit } =
-  useLoginForm();
+    useLoginForm({
+      onSubmit: async (_values, role, name) => {
+        if (role === "superadmin") {
+          navigate(`/superadmin`);
+        } else if (role === "admin") {
+          navigate(`/admin`);
+        } else {
+          navigate("/dashboard");
+        }
+      },
+    });
+  
   return (
     <form onSubmit={handleSubmit} className="tablet:w-[58%] text-white">
       <div className="mb-[7%] border-b border-white/70 pb-[1.2%]">
@@ -40,7 +54,7 @@ const Login = () => {
       {submitError ? (
         <p className="mt-[3%] text-[1.8vh] text-[#ffd4d4]">{submitError}</p>
       ) : null}
-    
+
       <button
         type="submit"
         disabled={isSubmitting}

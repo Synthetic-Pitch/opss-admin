@@ -1,4 +1,5 @@
 import { ChangeEvent, FormEvent, useState } from "react";
+import { supabase } from "../lib/supabaseClient";
 
 type LoginValues = {
   gmail: string;
@@ -6,7 +7,7 @@ type LoginValues = {
 };
 
 type UseLoginFormOptions = {
-  onSubmit?: (values: LoginValues, response: unknown) => void | Promise<void>;
+  onSubmit?: (values: LoginValues, role: string, name: string) => void | Promise<void>;
 };
 
 const initialValues: LoginValues = {
@@ -14,56 +15,51 @@ const initialValues: LoginValues = {
   password: "",
 };
 
-const ADMIN_LOGIN_URL =
-  "https://gbvpdhqscwuaymsddvms.supabase.co/functions/v1/admin-login";
-
 export const useLoginForm = (options?: UseLoginFormOptions) => {
   const [values, setValues] = useState<LoginValues>(initialValues);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-
+  
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setValues((prev) => ({ ...prev, [name]: value }));
   };
-
+  
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
     setIsSubmitting(true);
     setSubmitError(null);
-
+    
     try {
-      const response = await fetch(ADMIN_LOGIN_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          gmail: values.gmail,
-          password: values.password,
-        }),
+      console.log("Attempting login with:", values);
+      // Step 1: Login with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: values.gmail,
+        password: values.password,
       });
-  
-      const data = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        const errorMessage =
-          (data as { message?: string } | null)?.message ?? "Login request failed.";
-        throw new Error(errorMessage);
+      
+      if (authError) throw new Error(authError.message);
+      
+      // Step 2: Fetch role from your USER table
+      const { data: userData, error: userError } = await supabase
+        .from("Admin")
+        .select("role,name")
+        .eq("id", authData.user.id)
+        .single();
+      console.log(userData);
+      
+      if (userError) throw new Error("User not found in system.");
+      // Store name in sessionStorage if not already set
+      if (!sessionStorage.getItem("adminName")) {
+        sessionStorage.setItem("adminName", userData.name);
       }
+      console.log("Login success, role:", userData.role);
+      await options?.onSubmit?.(values, userData.role,userData.name);
 
-      const id =
-        (data as { id?: string | number } | null)?.id ??
-        (data as { data?: { id?: string | number } } | null)?.data?.id;
-
-      console.log("Admin login success:", { id, response: data });
-      await options?.onSubmit?.(values, data);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Something went wrong during login.";
+      const message = error instanceof Error ? error.message : "Something went wrong.";
       setSubmitError(message);
-      console.error("Admin login failed:", message);
+      console.error("Login failed:", message);
     } finally {
       setIsSubmitting(false);
     }
