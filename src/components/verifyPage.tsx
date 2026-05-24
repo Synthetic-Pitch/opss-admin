@@ -97,13 +97,12 @@ const VerifyPage = () => {
                             
                             <main className="flex flex-col  tablet:flex-row tablet:items-center w-full gap-2">
                                 <div className="px-4 w-[50%]">
-                                    <p className="font-bold text-[#3f7cab] text-xl">vehicle.</p>
+                                    <p className="font-bold text-[#3f7cab] text-xl">vehicle</p>
                                     <p>vehicle type : {data?.vehicleInfo.vehicle_type}</p>
                                     <p>vehicle model : {data?.vehicleInfo.vehicle_model}</p>
                                     <p>vehicle color : {data?.vehicleInfo.vehicle_color}</p>
                                 </div>
                           
-                               
                                 <div className="px-4 w-[50%]">
                                      <p className="font-bold text-[#3f7cab] text-xl ">transaction</p>
                                     <p>transaction status : {data?.transactionInfo.transaction_status}</p>
