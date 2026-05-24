@@ -50,6 +50,16 @@ type InfoPanelProps = {
     children: ReactNode;
 };
 
+class AdminUserInfoRequestError extends Error {
+    status: number;
+
+    constructor(status: number, message: string) {
+        super(message);
+        this.name = "AdminUserInfoRequestError";
+        this.status = status;
+    }
+}
+
 const formatCreatedAt = (createdAt?: string) => {
     if (!createdAt) return "Unknown";
 
@@ -72,9 +82,17 @@ const fetchAdminUserInfo = async (plateNumber: string): Promise<AdminUserInfo> =
         },
         body: JSON.stringify({ platenumber: plateNumber }),
     });
-    if (!res.ok) throw new Error("Failed to fetch admin user info");
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+        const message = res.status === 404
+            ? `Plate number ${plateNumber} was not found.`
+            : data.error ?? "Failed to fetch admin user info.";
+
+        throw new AdminUserInfoRequestError(res.status, message);
+    }
     
-    return res.json();
+    return data as AdminUserInfo;
 };
 
 const approveCompliance = async (plateNumber: string): Promise<ApproveComplianceResponse> => {
@@ -126,7 +144,7 @@ const VerifyPage = () => {
         alt: string;
     } | null>(null);
 
-    const { data, isLoading } = useQuery({
+    const { data, isLoading, isError, error } = useQuery<AdminUserInfo, AdminUserInfoRequestError>({
         queryKey: ["admin-user-info", plateNumber],
         queryFn: () => fetchAdminUserInfo(plateNumber as string),
         enabled: Boolean(plateNumber),
@@ -157,6 +175,9 @@ const VerifyPage = () => {
         data?.violationInfo.map((violation) => violation.reference_number)
     ).size; 
     
+    const reviewErrorTitle = error?.status === 404 ? "Plate number not found" : "Unable to load review";
+    const reviewErrorMessage = error?.message ?? "Something went wrong while loading this review.";
+
     if(!plateNumber) return <div>No plate number provided</div>;
     
     const handleApproveCompliance = () => {
@@ -179,8 +200,29 @@ const VerifyPage = () => {
             </header>
 
             <main className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-5 tablet:px-6">
+                {isLoading && (
+                    <div className="rounded-lg border border-[#d8dde3] bg-white p-6 text-center font-semibold text-[#68717a] shadow-sm">
+                        Loading review details...
+                    </div>
+                )}
+
+                {isError && (
+                    <section className="rounded-lg border border-[#f1b8b8] bg-white p-8 text-center shadow-sm">
+                        <p className="text-sm font-bold uppercase text-[#bd4f4f]">Review unavailable</p>
+                        <h2 className="mt-2 text-2xl font-bold text-[#163247]">{reviewErrorTitle}</h2>
+                        <p className="mx-auto mt-2 max-w-xl text-sm font-semibold text-[#61707f]">{reviewErrorMessage}</p>
+                        <button
+                            type="button"
+                            className="mt-5 rounded-md bg-[#23445d] px-5 py-3 font-bold text-white transition hover:bg-[#163247] cursor-pointer"
+                            onClick={() => navigate("/admin")}
+                        >
+                            Back to admin
+                        </button>
+                    </section>
+                )}
+
                 {
-                    data ? (
+                    data && (
                         <>  
                             <section className="grid grid-cols-1 gap-3 tablet:grid-cols-3">
                                 <div className="rounded-lg border border-[#d8dde3] bg-white p-4 shadow-sm">
@@ -239,12 +281,12 @@ const VerifyPage = () => {
                                 </div>
                             </section>
                         </>
-                    ):(<div className="rounded-lg border border-[#d8dde3] bg-white p-6 text-center font-semibold text-[#68717a] shadow-sm">Loading review details...</div>)
+                    )
                 }
             </main>
 
             {
-                !isLoading && (
+                data && (
                     <section className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-5 px-4 pb-6 tablet:px-6 desktop:grid-cols-2">
                         <article className="rounded-lg border border-[#d8dde3] bg-white p-4 shadow-sm">
                             <div className="mb-3 flex items-center justify-between gap-3">
