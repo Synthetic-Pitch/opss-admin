@@ -21,7 +21,9 @@ type PendingResponse = {
 const fetchPendingRequests = async (): Promise<PendingResponse> => {
   const res = await fetch("https://gbvpdhqscwuaymsddvms.supabase.co/functions/v1/pending-request");
   if (!res.ok) throw new Error("Failed to fetch");
-  return res.json();
+  const data = await res.json();
+  console.log(data);
+  return data;
 };
 
 const SubmissionGroup = ({ label, items }: { label: string; items: Submission[] }) => {
@@ -31,7 +33,19 @@ const SubmissionGroup = ({ label, items }: { label: string; items: Submission[] 
     <div>
       <h2 className="font-bold text-[#606060] mb-2">{label}</h2>
       {items.map((item) => (
-        <div key={item.id} className="bg-white flex gap-4 rounded-lg p-4 mb-2 shadow-sm cursor-pointer text-sm text-[#7d7c7c]" onClick={()=>{navigate(`/admin/${item.user_id}`)}}>
+        <div
+          key={item.id}
+          className="bg-white flex gap-4 rounded-lg p-4 mb-2 shadow-sm cursor-pointer text-sm text-[#7d7c7c]"
+          onClick={() => {
+            navigate(`/admin/${item.user_id}`, {
+              state: {
+                createdAt: item.created_at,
+                licenseValidId: item.license_valid_id,
+                ovr: item.ovr,
+              },
+            });
+          }}
+        >
           <p>Id : {item.id}</p>
           <p>Platenumber : {item.user_id}</p>
         </div>
