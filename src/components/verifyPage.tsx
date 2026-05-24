@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useLocation, useParams } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 type VerifyPageState = {
     createdAt?: string;
@@ -31,6 +31,13 @@ type AdminUserInfo = {
     vehicleInfo: VehicleInfo;
     transactionInfo: TransactionInfo;
     violationInfo: ViolationInfo[];
+};
+
+type ApproveComplianceResponse = {
+    success?: boolean;
+    message?: string;
+    error?: string;
+    current_status?: string;
 };
 
 type DetailItemProps = {
@@ -70,6 +77,25 @@ const fetchAdminUserInfo = async (plateNumber: string): Promise<AdminUserInfo> =
     return res.json();
 };
 
+const approveCompliance = async (plateNumber: string): Promise<ApproveComplianceResponse> => {
+    const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY ?? import.meta.env.VITE_PUBLISHABLE_KEY;
+    const res = await fetch("https://gbvpdhqscwuaymsddvms.supabase.co/functions/v1/request-approve", {
+        method: "POST",
+        headers: {
+            "Authorization": `Bearer ${anonKey}`,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ user_id: plateNumber }),
+    });
+    const data = await res.json().catch(() => ({})) as ApproveComplianceResponse;
+
+    if (!res.ok) {
+        throw new Error(data.error ?? "Failed to approve compliance");
+    }
+
+    return data;
+};
+
 const DetailItem = ({ label, value }: DetailItemProps) => (
     <div className="rounded-md bg-[#f8fafb] px-4 py-3">
         <p className="text-xs font-semibold uppercase text-[#68717a]">{label}</p>
@@ -87,7 +113,14 @@ const InfoPanel = ({ title, children }: InfoPanelProps) => (
 const VerifyPage = () => {
     const { plateNumber } = useParams<{ plateNumber: string }>();
     const location = useLocation();
+    const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const { createdAt, licenseValidId, ovr } = (location.state ?? {}) as VerifyPageState;
+    const [approvalMessage, setApprovalMessage] = useState<{
+        type: "success" | "error";
+        text: string;
+    } | null>(null);
+    const [isRedirectingAfterApproval, setIsRedirectingAfterApproval] = useState(false);
     const [inspectedImage, setInspectedImage] = useState<{
         src?: string;
         alt: string;
@@ -98,20 +131,45 @@ const VerifyPage = () => {
         queryFn: () => fetchAdminUserInfo(plateNumber as string),
         enabled: Boolean(plateNumber),
     });
+
+    const approveComplianceMutation = useMutation({
+        mutationFn: approveCompliance,
+        onSuccess: (response) => {
+            setApprovalMessage({
+                type: "success",
+                text: response.message ?? "Compliance approved successfully.",
+            });
+            queryClient.invalidateQueries({ queryKey: ["admin-user-info", plateNumber] });
+            queryClient.invalidateQueries({ queryKey: ["pending-requests"] });
+            setIsRedirectingAfterApproval(true);
+            window.setTimeout(() => {
+                navigate("/admin");
+            }, 1400);
+        },
+        onError: (error) => {
+            setApprovalMessage({
+                type: "error",
+                text: error instanceof Error ? error.message : "Failed to approve compliance.",
+            });
+        },
+    });
     const totalReferenceNumbers = new Set(
         data?.violationInfo.map((violation) => violation.reference_number)
     ).size; 
     
     if(!plateNumber) return <div>No plate number provided</div>;
     
+    const handleApproveCompliance = () => {
+        setApprovalMessage(null);
+        approveComplianceMutation.mutate(plateNumber);
+    };
+
     return (
         <div className="min-h-dvh bg-[#eef1f4] font-poppins text-[#1d2833]">
             <header className="border-b border-[#d8dde3] bg-white">
                 <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-5 tablet:flex-row tablet:items-center tablet:justify-between tablet:px-6">
                     <div>
                         <p className="text-sm font-semibold uppercase text-[#61707f]">Compliance Review</p>
-                        <h1 className="text-2xl font-bold text-[#163247] tablet:text-3xl">{plateNumber}</h1>
-                        <span className="text-[12px]">platenumber</span>
                     </div>
                     <div className="rounded-md border border-[#d8dde3] bg-[#f8fafb] px-4 py-3 text-sm">
                         <p className="font-semibold text-[#61707f]">Administrator</p>
@@ -226,9 +284,23 @@ const VerifyPage = () => {
 
                         <footer className="flex flex-col gap-3 rounded-lg border border-[#d8dde3] bg-white p-4 shadow-sm tablet:flex-row tablet:items-center tablet:justify-between desktop:col-span-2">
                             <button className="rounded-md bg-[#a82020] px-6 py-3 font-bold text-white transition hover:bg-[#861919] cursor-pointer">Red Notice</button>
-                            <div className="flex flex-col gap-3 tablet:flex-row tablet:justify-end">
-                                <button className="rounded-md border border-[#bd4f4f] px-6 py-3 font-bold text-[#bd4f4f] transition hover:bg-[#bd4f4f] hover:text-white cursor-pointer">Reject Compliance</button>
-                                <button className="rounded-md bg-[#188c3a] px-6 py-3 font-bold text-white transition hover:bg-[#126f2d] cursor-pointer">Approve Compliance</button>
+                            <div className="flex flex-col gap-3 tablet:items-end">
+                                {approvalMessage?.type === "error" && (
+                                    <p className="text-sm font-semibold text-[#bd4f4f]">
+                                        {approvalMessage.text}
+                                    </p>
+                                )}
+                                <div className="flex flex-col gap-3 tablet:flex-row tablet:justify-end">
+                                    <button className="rounded-md border border-[#bd4f4f] px-6 py-3 font-bold text-[#bd4f4f] transition hover:bg-[#bd4f4f] hover:text-white cursor-pointer">Reject Compliance</button>
+                                    <button 
+                                        type="button"
+                                        className="rounded-md bg-[#188c3a] px-6 py-3 font-bold text-white transition hover:bg-[#126f2d] disabled:cursor-not-allowed disabled:bg-[#8ebd9a]"
+                                        onClick={handleApproveCompliance}
+                                        disabled={approveComplianceMutation.isPending || isRedirectingAfterApproval}
+                                    >
+                                        {approveComplianceMutation.isPending || isRedirectingAfterApproval ? "Approving..." : "Approve Compliance"}
+                                    </button>
+                                </div>
                             </div>
                         </footer>
                     </section>
@@ -250,6 +322,20 @@ const VerifyPage = () => {
                             alt={inspectedImage.alt}
                             className="max-h-full max-w-full object-contain"
                         />
+                    </div>
+                )
+            }
+            {
+                approvalMessage?.type === "success" && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+                        <div className="w-full max-w-sm rounded-lg border border-[#cfe8d6] bg-white p-6 text-center shadow-xl">
+                            <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-[#e6f6eb] text-2xl font-bold text-[#188c3a]">
+                                OK
+                            </div>
+                            <h2 className="mt-4 text-xl font-bold text-[#163247]">Approve success!</h2>
+                            <p className="mt-2 text-sm font-semibold text-[#61707f]">{approvalMessage.text}</p>
+                            <p className="mt-4 text-xs font-bold uppercase text-[#226b3a]">Returning to admin...</p>
+                        </div>
                     </div>
                 )
             }
