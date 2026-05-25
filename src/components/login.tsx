@@ -3,15 +3,17 @@ import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const navigate = useNavigate();
-
+  
   const { values, isSubmitting, submitError, handleChange, handleSubmit } =
     useLoginForm({
-      onSubmit: async (_values, role, name) => {
+      onSubmit: async (_values, role) => {
         if (role === "superadmin") {
           navigate(`/superadmin`);
         } else if (role === "admin") {
           navigate(`/admin`);
-        } else {
+        }else if(role === "scanner"){
+          navigate(`/scanner`);
+        }else {
           navigate("/dashboard");
         }
       },
