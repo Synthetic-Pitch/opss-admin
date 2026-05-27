@@ -55,9 +55,9 @@ const Scanner = () => {
                 },
                 body: JSON.stringify({ qrcode: trimmedQrcode }),
             });
-
+            
             const data = await response.json().catch(() => null);
-
+            
             if (!response.ok) {
                 throw new Error(data?.error ?? data?.message ?? "Failed to submit vehicle.");
             }
