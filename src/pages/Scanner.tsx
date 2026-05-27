@@ -4,6 +4,18 @@ import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 const SCANNER_ENDPOINT = "https://gbvpdhqscwuaymsddvms.supabase.co/functions/v1/scanner";
 const SECTIONS = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
+type ScannerRecord = {
+    UUID: string;
+    plate_number: string;
+    reference_number: string;
+    payment_method: string;
+    amount_paid: number;
+    violation_count: number;
+    vehicle_model: string;
+    vehicle_type: string;
+    vehicle_color: string;
+};
+
 const getRandomLocation = () => {
     const section = SECTIONS[Math.floor(Math.random() * SECTIONS.length)];
     const row = Math.floor(Math.random() * 9) + 1;
@@ -23,6 +35,7 @@ const Scanner = () => {
     const [qrcode, setQrcode] = useState("");
     const [message, setMessage] = useState("");
     const [location, setLocation] = useState("");
+    const [record, setRecord] = useState<ScannerRecord | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -38,12 +51,14 @@ const Scanner = () => {
         if (!trimmedQrcode) {
             setMessage("Please scan a QR code.");
             setLocation("");
+            setRecord(null);
             return;
         }
 
         setIsSubmitting(true);
         setMessage("");
         setLocation("");
+        setRecord(null);
 
         try {
             const response = await fetch(SCANNER_ENDPOINT, {
@@ -63,11 +78,13 @@ const Scanner = () => {
             }
             
             setMessage(formatScannerMessage(data?.message ?? "Vehicle found"));
+            setRecord(data?.record ?? null);
             setLocation(getRandomLocation());
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "Failed to submit vehicle.";
             setMessage(formatScannerMessage(errorMessage));
             setLocation("");
+            setRecord(null);
         } finally {
             setIsSubmitting(false);
             requestAnimationFrame(() => {
@@ -86,6 +103,7 @@ const Scanner = () => {
         setQrcode("");
         setMessage("");
         setLocation("");
+        setRecord(null);
     };
     
     return (
@@ -103,6 +121,42 @@ const Scanner = () => {
                     disabled={isSubmitting}
                 />
                 {message ? <p className="text-center text-2xl font-bold md:text-4xl lg:text-5xl">{message}</p> : null}
+                {record ? (
+                    <div className="grid w-full max-w-3xl grid-cols-1 gap-3 rounded-lg border border-slate-200 p-4 text-sm shadow-sm sm:grid-cols-2 md:text-base">
+                        <div>
+                            <p className="text-slate-500">Plate Number</p>
+                            <p className="font-semibold">{record.plate_number}</p>
+                        </div>
+                        <div>
+                            <p className="text-slate-500">Reference Number</p>
+                            <p className="font-semibold">{record.reference_number}</p>
+                        </div>
+                        <div>
+                            <p className="text-slate-500">Payment Method</p>
+                            <p className="font-semibold">{record.payment_method}</p>
+                        </div>
+                        <div>
+                            <p className="text-slate-500">Amount Paid</p>
+                            <p className="font-semibold">PHP {record.amount_paid.toLocaleString()}</p>
+                        </div>
+                        <div>
+                            <p className="text-slate-500">Violation Count</p>
+                            <p className="font-semibold">{record.violation_count}</p>
+                        </div>
+                        <div>
+                            <p className="text-slate-500">Vehicle Model</p>
+                            <p className="font-semibold">{record.vehicle_model}</p>
+                        </div>
+                        <div>
+                            <p className="text-slate-500">Vehicle Type</p>
+                            <p className="font-semibold">{record.vehicle_type}</p>
+                        </div>
+                        <div>
+                            <p className="text-slate-500">Vehicle Color</p>
+                            <p className="font-semibold">{record.vehicle_color}</p>
+                        </div>
+                    </div>
+                ) : null}
                 {location ? (
                     <p className="max-w-full text-center text-5xl font-semibold leading-tight md:text-7xl lg:text-8xl">
                         {location}
