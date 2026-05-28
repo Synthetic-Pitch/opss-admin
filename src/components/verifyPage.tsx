@@ -40,6 +40,12 @@ type ApproveComplianceResponse = {
     current_status?: string;
 };
 
+type RejectComplianceResponse = {
+    message?: string;
+    error?: string;
+    data?: unknown;
+};
+
 type DetailItemProps = {
     label: string;
     value: ReactNode;
@@ -114,6 +120,26 @@ const approveCompliance = async (plateNumber: string): Promise<ApproveCompliance
     return data;
 };
 
+const rejectCompliance = async (plateNumber: string): Promise<RejectComplianceResponse> => {
+    const secretKey = import.meta.env.VITE_SECRET_KEY;
+    const res = await fetch("https://gbvpdhqscwuaymsddvms.supabase.co/functions/v1/reject-request", {
+        method: "POST",
+        headers: {
+            "apikey": secretKey,
+            "Authorization": `Bearer ${secretKey}`,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ platenumber: plateNumber }),
+    });
+    const data = await res.json().catch(() => ({})) as RejectComplianceResponse;
+
+    if (!res.ok) {
+        throw new Error(data.error ?? data.message ?? "Failed to reject compliance");
+    }
+
+    return data;
+};
+
 const DetailItem = ({ label, value }: DetailItemProps) => (
     <div className="rounded-md bg-[#f8fafb] px-4 py-3">
         <p className="text-xs font-semibold uppercase text-[#68717a]">{label}</p>
@@ -134,11 +160,12 @@ const VerifyPage = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { createdAt, licenseValidId, ovr } = (location.state ?? {}) as VerifyPageState;
-    const [approvalMessage, setApprovalMessage] = useState<{
+    const [complianceMessage, setComplianceMessage] = useState<{
         type: "success" | "error";
+        action?: "approve" | "reject";
         text: string;
     } | null>(null);
-    const [isRedirectingAfterApproval, setIsRedirectingAfterApproval] = useState(false);
+    const [isRedirectingAfterComplianceAction, setIsRedirectingAfterComplianceAction] = useState(false);
     const [inspectedImage, setInspectedImage] = useState<{
         src?: string;
         alt: string;
@@ -153,21 +180,47 @@ const VerifyPage = () => {
     const approveComplianceMutation = useMutation({
         mutationFn: approveCompliance,
         onSuccess: (response) => {
-            setApprovalMessage({
+            setComplianceMessage({
                 type: "success",
+                action: "approve",
                 text: response.message ?? "Compliance approved successfully.",
             });
             queryClient.invalidateQueries({ queryKey: ["admin-user-info", plateNumber] });
             queryClient.invalidateQueries({ queryKey: ["pending-requests"] });
-            setIsRedirectingAfterApproval(true);
+            setIsRedirectingAfterComplianceAction(true);
             window.setTimeout(() => {
                 navigate("/admin");
             }, 1400);
         },
         onError: (error) => {
-            setApprovalMessage({
+            setComplianceMessage({
                 type: "error",
+                action: "approve",
                 text: error instanceof Error ? error.message : "Failed to approve compliance.",
+            });
+        },
+    });
+
+    const rejectComplianceMutation = useMutation({
+        mutationFn: rejectCompliance,
+        onSuccess: (response) => {
+            setComplianceMessage({
+                type: "success",
+                action: "reject",
+                text: response.message ?? "Compliance rejected successfully.",
+            });
+            queryClient.invalidateQueries({ queryKey: ["admin-user-info", plateNumber] });
+            queryClient.invalidateQueries({ queryKey: ["pending-requests"] });
+            setIsRedirectingAfterComplianceAction(true);
+            window.setTimeout(() => {
+                navigate("/admin");
+            }, 1400);
+        },
+        onError: (error) => {
+            setComplianceMessage({
+                type: "error",
+                action: "reject",
+                text: error instanceof Error ? error.message : "Failed to reject compliance.",
             });
         },
     });
@@ -181,9 +234,18 @@ const VerifyPage = () => {
     if(!plateNumber) return <div>No plate number provided</div>;
     
     const handleApproveCompliance = () => {
-        setApprovalMessage(null);
+        setComplianceMessage(null);
         approveComplianceMutation.mutate(plateNumber);
     };
+
+    const handleRejectCompliance = () => {
+        setComplianceMessage(null);
+        rejectComplianceMutation.mutate(plateNumber);
+    };
+
+    const isComplianceActionPending = approveComplianceMutation.isPending
+        || rejectComplianceMutation.isPending
+        || isRedirectingAfterComplianceAction;
 
     return (
         <div className="min-h-dvh bg-[#eef1f4] font-poppins text-[#1d2833]">
@@ -327,20 +389,27 @@ const VerifyPage = () => {
                         <footer className="flex flex-col gap-3 rounded-lg border border-[#d8dde3] bg-white p-4 shadow-sm tablet:flex-row tablet:items-center tablet:justify-between desktop:col-span-2">
                             <button className="rounded-md bg-[#a82020] px-6 py-3 font-bold text-white transition hover:bg-[#861919] cursor-pointer">Red Notice</button>
                             <div className="flex flex-col gap-3 tablet:items-end">
-                                {approvalMessage?.type === "error" && (
+                                {complianceMessage?.type === "error" && (
                                     <p className="text-sm font-semibold text-[#bd4f4f]">
-                                        {approvalMessage.text}
+                                        {complianceMessage.text}
                                     </p>
                                 )}
                                 <div className="flex flex-col gap-3 tablet:flex-row tablet:justify-end">
-                                    <button className="rounded-md border border-[#bd4f4f] px-6 py-3 font-bold text-[#bd4f4f] transition hover:bg-[#bd4f4f] hover:text-white cursor-pointer">Reject Compliance</button>
+                                    <button 
+                                        type="button"
+                                        className="rounded-md border border-[#bd4f4f] px-6 py-3 font-bold text-[#bd4f4f] transition hover:bg-[#bd4f4f] hover:text-white disabled:cursor-not-allowed disabled:border-[#dfa7a7] disabled:text-[#c98585] disabled:hover:bg-transparent"
+                                        onClick={handleRejectCompliance}
+                                        disabled={isComplianceActionPending}
+                                    >
+                                        {rejectComplianceMutation.isPending || (isRedirectingAfterComplianceAction && complianceMessage?.action === "reject") ? "Rejecting..." : "Reject Compliance"}
+                                    </button>
                                     <button 
                                         type="button"
                                         className="rounded-md bg-[#188c3a] px-6 py-3 font-bold text-white transition hover:bg-[#126f2d] disabled:cursor-not-allowed disabled:bg-[#8ebd9a]"
                                         onClick={handleApproveCompliance}
-                                        disabled={approveComplianceMutation.isPending || isRedirectingAfterApproval}
+                                        disabled={isComplianceActionPending}
                                     >
-                                        {approveComplianceMutation.isPending || isRedirectingAfterApproval ? "Approving..." : "Approve Compliance"}
+                                        {approveComplianceMutation.isPending || (isRedirectingAfterComplianceAction && complianceMessage?.action === "approve") ? "Approving..." : "Approve Compliance"}
                                     </button>
                                 </div>
                             </div>
@@ -368,14 +437,16 @@ const VerifyPage = () => {
                 )
             }
             {
-                approvalMessage?.type === "success" && (
+                complianceMessage?.type === "success" && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
                         <div className="w-full max-w-sm rounded-lg border border-[#cfe8d6] bg-white p-6 text-center shadow-xl">
                             <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-[#e6f6eb] text-2xl font-bold text-[#188c3a]">
                                 OK
                             </div>
-                            <h2 className="mt-4 text-xl font-bold text-[#163247]">Approve success!</h2>
-                            <p className="mt-2 text-sm font-semibold text-[#61707f]">{approvalMessage.text}</p>
+                            <h2 className="mt-4 text-xl font-bold text-[#163247]">
+                                {complianceMessage.action === "reject" ? "Reject success!" : "Approve success!"}
+                            </h2>
+                            <p className="mt-2 text-sm font-semibold text-[#61707f]">{complianceMessage.text}</p>
                             <p className="mt-4 text-xs font-bold uppercase text-[#226b3a]">Returning to admin...</p>
                         </div>
                     </div>
