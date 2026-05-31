@@ -1,0 +1,63 @@
+Date : 2026-05-31 15:37:33
+Directory : c:\Users\reymark\Documents\react\vite\capstone1_admin
+Total : 24 files,  2675 codes, 4 comments, 147 blanks, all 2826 lines
+
+Languages
++--------------------+------------+------------+------------+------------+------------+
+| language           | files      | code       | comment    | blank      | total      |
++--------------------+------------+------------+------------+------------+------------+
+| JSON               |          3 |      1,579 |          0 |          3 |      1,582 |
+| TypeScript JSX     |          9 |        940 |          0 |        118 |      1,058 |
+| TypeScript         |          5 |         76 |          4 |         20 |        100 |
+| XML                |          4 |         27 |          0 |          3 |         30 |
+| JSON with Comments |          1 |         21 |          0 |          1 |         22 |
+| HTML               |          1 |         16 |          0 |          1 |         17 |
+| PostCSS            |          1 |         16 |          0 |          1 |         17 |
++--------------------+------------+------------+------------+------------+------------+
+
+Directories
++-----------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                    | files      | code       | comment    | blank      | total      |
++-----------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                       |         24 |      2,675 |          4 |        147 |      2,826 |
+| . (Files)                                                                               |          6 |      1,622 |          0 |          7 |      1,629 |
+| public                                                                                  |          2 |         25 |          0 |          1 |         26 |
+| src                                                                                     |         16 |      1,028 |          4 |        139 |      1,171 |
+| src (Files)                                                                             |          4 |         73 |          1 |         11 |         85 |
+| src\assets                                                                              |          2 |          2 |          0 |          2 |          4 |
+| src\components                                                                          |          3 |        495 |          0 |         60 |        555 |
+| src\hooks                                                                               |          2 |         62 |          3 |         14 |         79 |
+| src\lib                                                                                 |          1 |          4 |          0 |          2 |          6 |
+| src\pages                                                                               |          4 |        392 |          0 |         50 |        442 |
++-----------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-----------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
+| filename                                                                                | language           | code       | comment    | blank      | total      |
++-----------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\index.html                        | HTML               |         16 |          0 |          1 |         17 |
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\package-lock.json                 | JSON               |      1,544 |          0 |          1 |      1,545 |
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\package.json                      | JSON               |         27 |          0 |          1 |         28 |
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\public\favicon.svg                | XML                |          1 |          0 |          0 |          1 |
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\public\icons.svg                  | XML                |         24 |          0 |          1 |         25 |
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\src\App.tsx                       | TypeScript JSX     |         25 |          0 |          4 |         29 |
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\src\assets\typescript.svg         | XML                |          1 |          0 |          1 |          2 |
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\src\assets\vite.svg               | XML                |          1 |          0 |          1 |          2 |
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\src\components\ProtectedRoute.tsx | TypeScript JSX     |         18 |          0 |          5 |         23 |
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\src\components\login.tsx          | TypeScript JSX     |         64 |          0 |          7 |         71 |
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\src\components\verifyPage.tsx     | TypeScript JSX     |        413 |          0 |         48 |        461 |
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\src\hooks\useAprovePending.ts     | TypeScript         |          0 |          0 |          1 |          1 |
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\src\hooks\useLoginForm.ts         | TypeScript         |         62 |          3 |         13 |         78 |
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\src\index.css                     | PostCSS            |         16 |          0 |          1 |         17 |
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\src\lib\supabaseClient.ts         | TypeScript         |          4 |          0 |          2 |          6 |
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\src\main.tsx                      | TypeScript JSX     |         28 |          0 |          4 |         32 |
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\src\pages\Admin.tsx               | TypeScript JSX     |        173 |          0 |         21 |        194 |
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\src\pages\Landing.tsx             | TypeScript JSX     |         63 |          0 |          5 |         68 |
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\src\pages\NotFound.tsx            | TypeScript JSX     |          6 |          0 |          3 |          9 |
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\src\pages\Scanner.tsx             | TypeScript JSX     |        150 |          0 |         21 |        171 |
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\src\vite-env.d.ts                 | TypeScript         |          4 |          1 |          2 |          7 |
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\tsconfig.json                     | JSON with Comments |         21 |          0 |          1 |         22 |
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\vercel.json                       | JSON               |          8 |          0 |          1 |          9 |
+| c:\Users\reymark\Documents\react\vite\capstone1_admin\vite.config.ts                    | TypeScript         |          6 |          0 |          2 |          8 |
+| Total                                                                                   |                    |      2,675 |          4 |        147 |      2,826 |
++-----------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
